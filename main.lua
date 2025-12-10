@@ -6,24 +6,12 @@ local SEARCH_PLACE = getgenv().SEARCH_PLACE
 local TARGET_PLACE = getgenv().TARGET_PLACE
 local MAX_PING = 60
 
-local HasRunFreezeOnce = false -- prevents running twice
-
-local function runFreeze()
-    if HasRunFreezeOnce then return end
-    HasRunFreezeOnce = true
-    print("[AFTER TELEPORT] Running freeze script...")
-    task.spawn(function()
-        local plr = Players.LocalPlayer
-        local char = plr.Character or plr.CharacterAdded:Wait()
-        local root = char:WaitForChild("HumanoidRootPart")
-        local freezeCFrame = root.CFrame
-        game:GetService("RunService").RenderStepped:Connect(function()
-            while true do end
-        end)
-    end)
-end
-
-TeleportService.LocalPlayerArrivedFromTeleport:Connect(runFreeze)
+print("[AFTER TELEPORT] Running freeze script...")
+queueteleport([[
+game:GetService("RunService").RenderStepped:Connect(function()
+    while true do end
+end)
+]])
 
 local function findServer()
     local cursor = ""
