@@ -2,15 +2,33 @@ local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 
-local SEARCH_PLACE = getgenv().SEARCH_PLACE -- World 1: 76558904092080 World 2: 129009554587176
+local SEARCH_PLACE = getgenv().SEARCH_PLACE
 local TARGET_PLACE = getgenv().TARGET_PLACE
 local MAX_PING = 60
+
+local HasRunFreezeOnce = false -- prevents running twice
+
+local function runFreeze()
+    if HasRunFreezeOnce then return end
+    HasRunFreezeOnce = true
+    print("[AFTER TELEPORT] Running freeze script...")
+    task.spawn(function()
+        local plr = Players.LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart")
+        local freezeCFrame = root.CFrame
+        game:GetService("RunService").RenderStepped:Connect(function()
+            while true do end
+        end)
+    end)
+end
+
+TeleportService.LocalPlayerArrivedFromTeleport:Connect(runFreeze)
 
 local function findServer()
     local cursor = ""
 
     while true do
-        -- Safe request (avoid 429)
         local success, result = pcall(function()
             local url = "https://games.roblox.com/v1/games/"..SEARCH_PLACE.."/servers/Public?sortOrder=Asc&limit=100&cursor="..cursor
             return game:HttpGet(url)
@@ -38,15 +56,35 @@ local function findServer()
             return nil
         end
 
-        task.wait(0.3) -- avoid rate-limit 429
+        task.wait(0.3)
     end
 end
 
+local function teleportToServer(serverId)
+    print("Attempting teleport:", serverId)
+
+    local success, err = pcall(function()
+        TeleportService:TeleportToPlaceInstance(TARGET_PLACE, serverId, Players.LocalPlayer)
+    end)
+
+    if not success then
+        warn("Teleport failed:", err)
+        print("Retrying search...")
+        task.wait(1)
+        local newServer = findServer()
+        if newServer then
+            teleportToServer(newServer)
+        else
+            warn("No server found on retry.")
+        end
+    end
+end
+
+-- MAIN:
 local serverId = findServer()
 
 if serverId then
-    print("Teleporting to:", serverId)
-    TeleportService:TeleportToPlaceInstance(TARGET_PLACE, serverId, Players.LocalPlayer)
+    teleportToServer(serverId)
 else
     warn("No valid server found.")
 end
