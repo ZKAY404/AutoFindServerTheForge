@@ -8,6 +8,7 @@ local MAX_PING = 60
 
 print("[AFTER TELEPORT] Running freeze script...")
 queue_on_teleport([[
+wait(2)
 game:GetService("RunService").RenderStepped:Connect(function()
     while true do end
 end)
