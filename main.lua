@@ -14,6 +14,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 end)
 ]])
 
+-- SERVER FINDER
 local function findServer()
     local cursor = ""
 
@@ -24,7 +25,7 @@ local function findServer()
         end)
 
         if not success then
-            print("Request failed... retrying")
+            print("Request failed… retrying")
             task.wait(1)
             continue
         end
@@ -49,31 +50,41 @@ local function findServer()
     end
 end
 
+
+-- FIXED TELEPORT WITH INFINITE AUTO-RETRY
 local function teleportToServer(serverId)
-    print("Attempting teleport:", serverId)
+    while true do  
+        print("Attempting teleport:", serverId)
 
-    local success, err = pcall(function()
-        TeleportService:TeleportToPlaceInstance(TARGET_PLACE, serverId, Players.LocalPlayer)
-    end)
+        local success, err = pcall(function()
+            TeleportService:TeleportToPlaceInstance(TARGET_PLACE, serverId, Players.LocalPlayer)
+        end)
 
-    if not success then
-        warn("Teleport failed:", err)
-        print("Retrying search...")
-        task.wait(1)
-        local newServer = findServer()
-        if newServer then
-            teleportToServer(newServer)
+        if success then
+            print("Teleport call SUCCESS (waiting for teleport)...")
+            break  -- Stop retrying, teleport is now processing
         else
-            warn("No server found on retry.")
+            warn("Teleport failed:", err)
+            print("Searching for new server...")
+
+            local newServer = findServer()
+            if newServer then
+                serverId = newServer  -- Update and retry
+            else
+                warn("No valid server found. Retrying whole process...")
+                task.wait(2)
+            end
         end
+
+        task.wait(1)
     end
 end
 
+
 -- MAIN:
 local serverId = findServer()
-
 if serverId then
     teleportToServer(serverId)
 else
-    warn("No valid server found.")
+    warn("No valid server found. Script ended.")
 end
