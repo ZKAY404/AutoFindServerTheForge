@@ -40,7 +40,7 @@ local function findServer()
         for _, s in ipairs(data.data) do
             print("Checking server:", s.id, "Players:", s.playing, "Ping:", s.ping)
 
-            if s.playing == 1 and s.ping and s.ping <= MAX_PING then
+            if s.playing <= 2 and s.ping and s.ping <= MAX_PING then
                 print("Valid server found:", s.id)
 
                 -- SAVE NEXT CURSOR
