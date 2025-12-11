@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 
 local SEARCH_PLACE = getgenv().SEARCH_PLACE
 local TARGET_PLACE = getgenv().TARGET_PLACE
-local MAX_PING = 60
+local MAX_PING = 20
 
 -- SAVE CURSOR BETWEEN TELEPORTS
 getgenv().GLOBAL_CURSOR = ""
