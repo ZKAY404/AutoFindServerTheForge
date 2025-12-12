@@ -25,7 +25,12 @@ local function findServer()
 
     while true do
         local success, result = pcall(function()
-            local url = "https://games.roblox.com/v1/games/"..SEARCH_PLACE.."/servers/Public?sortOrder=Asc&limit=100&cursor="..cursor
+            local url = "https://games.roblox.com/v1/games/"..SEARCH_PLACE.."/servers/Public?sortOrder=Asc&limit=100"
+        
+            if cursor and cursor ~= "" then
+                url = url .. "&cursor=" .. cursor
+            end
+        
             return game:HttpGet(url)
         end)
 
@@ -36,6 +41,12 @@ local function findServer()
         end
 
         local data = HttpService:JSONDecode(result)
+
+        if not data.data then
+            print("API returned invalid JSON, retrying...")
+            task.wait(1)
+            continue
+        end
 
         for _, s in ipairs(data.data) do
             print("Checking server:", s.id, "Players:", s.playing, "Ping:", s.ping)
